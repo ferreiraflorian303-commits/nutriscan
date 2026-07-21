@@ -1,0 +1,52 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Profile {
+  id             Int      @id @default(1)
+  name           String   @default("")
+  sex            String // "female" | "male"
+  age            Int
+  heightCm       Float
+  startWeightKg  Float
+  currentWeightKg Float
+  goalWeightKg   Float
+  activityLevel  String // "sedentary" | "light" | "moderate" | "active" | "very_active"
+  weeklyRateKg   Float    @default(0.5) // objectif de perte par semaine
+  calorieGoal    Int
+  proteinGoalG   Int
+  carbsGoalG     Int
+  fatGoalG       Int
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Meal {
+  id          String   @id @default(uuid())
+  date        String // YYYY-MM-DD (jour local)
+  eatenAt     DateTime @default(now())
+  mealType    String // "breakfast" | "lunch" | "dinner" | "snack"
+  name        String
+  photoData   String? // base64 data URL de la photo (miniature)
+  items       String // JSON string: [{name, quantity, unit, calories, protein, carbs, fat}]
+  calories    Float
+  protein     Float
+  carbs       Float
+  fat         Float
+  fiber       Float    @default(0)
+  confidence  String   @default("medium") // "low" | "medium" | "high"
+  createdAt   DateTime @default(now())
+}
+
+model WeightEntry {
+  id        String   @id @default(uuid())
+  date      String // YYYY-MM-DD
+  weightKg  Float
+  note      String?
+  createdAt DateTime @default(now())
+}

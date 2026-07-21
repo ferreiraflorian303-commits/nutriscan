@@ -12,10 +12,18 @@ import { requireAuth } from "./lib/auth";
 
 const app = express();
 const PORT = process.env.PORT ? Number(process.env.PORT) : 4000;
+const isProd = process.env.NODE_ENV === "production";
+const allowedOrigins = (process.env.CLIENT_ORIGIN ?? "http://localhost:5173")
+  .split(",")
+  .map((o) => o.trim());
+
+if (isProd) {
+  app.set("trust proxy", 1); // requis derrière le proxy Render pour les cookies secure
+}
 
 app.use(
   cors({
-    origin: process.env.CLIENT_ORIGIN ?? "http://localhost:5173",
+    origin: allowedOrigins,
     credentials: true,
   })
 );
@@ -27,8 +35,8 @@ app.use(
     saveUninitialized: false,
     cookie: {
       httpOnly: true,
-      sameSite: "lax",
-      secure: false,
+      sameSite: isProd ? "none" : "lax",
+      secure: isProd,
       maxAge: 1000 * 60 * 60 * 24 * 90, // 90 jours
     },
   })

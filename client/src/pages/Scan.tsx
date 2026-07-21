@@ -30,13 +30,19 @@ export function Scan() {
   const [analysis, setAnalysis] = useState<MealAnalysis | null>(null);
   const [mealType, setMealType] = useState<MealType>(guessMealType());
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
+  async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setPhotoFile(file);
-    setPhotoPreview(URL.createObjectURL(file));
-    setAnalysis(null);
     setError("");
+    let normalized: File;
+    try {
+      normalized = await normalizePhoto(file);
+    } catch {
+      normalized = file;
+    }
+    setPhotoFile(normalized);
+    setPhotoPreview(URL.createObjectURL(normalized));
+    setAnalysis(null);
   }
 
   async function analyze() {
@@ -242,6 +248,48 @@ function MacroInput({
       <div className="mt-1 text-[10px] text-slate-400">{label}{suffix ? ` (${suffix})` : ""}</div>
     </div>
   );
+}
+
+const MAX_DIMENSION = 1600;
+
+function normalizePhoto(file: File): Promise<File> {
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      try {
+        let { naturalWidth: width, naturalHeight: height } = img;
+        if (width > MAX_DIMENSION || height > MAX_DIMENSION) {
+          const scale = MAX_DIMENSION / Math.max(width, height);
+          width = Math.round(width * scale);
+          height = Math.round(height * scale);
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) throw new Error("Canvas non supporté");
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob(
+          (blob) => {
+            URL.revokeObjectURL(url);
+            if (!blob) return reject(new Error("Conversion échouée"));
+            resolve(new File([blob], "plat.jpg", { type: "image/jpeg" }));
+          },
+          "image/jpeg",
+          0.85
+        );
+      } catch (err) {
+        URL.revokeObjectURL(url);
+        reject(err);
+      }
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error("Image illisible"));
+    };
+    img.src = url;
+  });
 }
 
 function toBase64(file: File): Promise<string> {

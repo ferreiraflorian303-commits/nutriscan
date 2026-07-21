@@ -20,7 +20,8 @@ function guessMealType(): MealType {
 
 export function Scan() {
   const navigate = useNavigate();
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
   const [photoFile, setPhotoFile] = useState<File | null>(null);
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
   const [analyzing, setAnalyzing] = useState(false);
@@ -97,19 +98,35 @@ export function Scan() {
       <p className="mb-6 text-sm text-slate-500">Prends en photo ton repas, l'IA calcule tout pour toi.</p>
 
       {!photoPreview && (
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-brand-300 bg-brand-50 py-16"
-        >
-          <CameraIcon className="h-10 w-10 text-brand-600" />
-          <span className="font-medium text-brand-700">Prendre une photo</span>
-        </button>
+        <div className="flex flex-col gap-3">
+          <button
+            onClick={() => cameraInputRef.current?.click()}
+            className="flex w-full flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed border-brand-300 bg-brand-50 py-16"
+          >
+            <CameraIcon className="h-10 w-10 text-brand-600" />
+            <span className="font-medium text-brand-700">Prendre une photo</span>
+          </button>
+          <button
+            onClick={() => galleryInputRef.current?.click()}
+            className="flex w-full items-center justify-center gap-2 rounded-2xl border border-slate-200 bg-white py-4"
+          >
+            <GalleryIcon className="h-5 w-5 text-slate-500" />
+            <span className="font-medium text-slate-600">Importer une photo</span>
+          </button>
+        </div>
       )}
       <input
-        ref={fileInputRef}
+        ref={cameraInputRef}
         type="file"
         accept="image/*"
         capture="environment"
+        className="hidden"
+        onChange={handleFileChange}
+      />
+      <input
+        ref={galleryInputRef}
+        type="file"
+        accept="image/*"
         className="hidden"
         onChange={handleFileChange}
       />
@@ -241,6 +258,16 @@ function CameraIcon(props: React.SVGProps<SVGSVGElement>) {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" {...props}>
       <path d="M4 8a2 2 0 0 1 2-2h1.5l1-2h7l1 2H18a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8Z" strokeLinecap="round" strokeLinejoin="round" />
       <circle cx="12" cy="13" r="3.5" />
+    </svg>
+  );
+}
+
+function GalleryIcon(props: React.SVGProps<SVGSVGElement>) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" {...props}>
+      <rect x="3" y="4" width="18" height="16" rx="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="8.5" cy="9.5" r="1.5" />
+      <path d="M21 16l-5.5-5.5a2 2 0 0 0-2.8 0L3 20" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
